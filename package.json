@@ -1,0 +1,53 @@
+{
+  "name": "cryptonaire-app-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Cryptonaire — a real-time crypto new-listing tracker across Binance, Bybit, MEXC, Bitget, and Gate.io",
+  "type": "module",
+  "main": "src/server.ts",
+  "private": true,
+  "scripts": {
+    "build": "bun build src/server.ts --outdir dist",
+    "start": "bun run src/server.ts",
+    "dev": "bun run --watch src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "crypto",
+    "listing",
+    "binance",
+    "bybit",
+    "mexc",
+    "bitget",
+    "gateio",
+    "scraping",
+    "api",
+    "mongodb",
+    "bun"
+  ],
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/bun": "latest",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.3",
+    "morgan": "^1.10.1",
+    "tweetnacl": "^1.0.3",
+    "zod": "^4.3.6"
+  }
+}
