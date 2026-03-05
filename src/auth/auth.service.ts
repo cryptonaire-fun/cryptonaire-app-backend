@@ -1,7 +1,8 @@
 import nacl from 'tweetnacl';
 import { PublicKey } from '@solana/web3.js';
 import jwt from 'jsonwebtoken';
-import { UserModel } from './auth.model.ts';
+import { UserModel } from '../user/user.model.ts';
+import { upsertLeaderboardEntry, getLeaderboardEntry } from '../leaderboard/leaderboard.service.ts';
 import { config } from '../../config/index.ts';
 import type { VerifyAuthInput } from './auth.validation.ts';
 
@@ -40,6 +41,20 @@ export class AuthError extends Error {
         this.name = 'AuthError';
         this.statusCode = statusCode;
     }
+}
+
+/**
+ * Generate a unique-ish display username seeded from the wallet address.
+ * Format: Crypto_<first 6 chars of address>_<4-char random suffix>
+ * e.g. Crypto_5Bpd2v_x3kQ
+ */
+function generateUsername(walletAddress: string): string {
+    const prefix = walletAddress.slice(0, 6);
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const suffix = Array.from({ length: 4 }, () =>
+        chars[Math.floor(Math.random() * chars.length)]
+    ).join('');
+    return `Crypto_${prefix}_${suffix}`;
 }
 
 /**
@@ -91,8 +106,26 @@ export async function verifyAndAuthenticate(payload: VerifyAuthInput) {
 
     // 5. Find or create user
     let user = await UserModel.findOne({ walletAddress: address });
+    let isNewUser = false;
+
     if (!user) {
-        user = await UserModel.create({ walletAddress: address });
+        isNewUser = true;
+        const username = generateUsername(address);
+        user = await UserModel.create({ walletAddress: address, username });
+
+        // Seed a leaderboard entry for the new user (0 points, ranked last)
+        await upsertLeaderboardEntry(address, { points: 0 });
+    } else if (!user.username) {
+        // Back-fill username for legacy accounts that somehow have none
+        user.username = generateUsername(address);
+    }
+
+    if (!isNewUser) {
+        // Back-fill leaderboard entry for existing users testing the new feature
+        const entry = await getLeaderboardEntry(address);
+        if (!entry) {
+            await upsertLeaderboardEntry(address, { points: user.points || 0 });
+        }
     }
 
     // 6. Update last login

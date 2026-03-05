@@ -12,19 +12,19 @@ This document is intended to guide both the **mobile app agent** and the **backe
 
 ## Core Idea
 
-Sign In with Solana (SIWS) works on a simple principle:  **only the owner of a wallet can produce a valid signature for that wallet's public key** .
+Sign In with Solana (SIWS) works on a simple principle: **only the owner of a wallet can produce a valid signature for that wallet's public key**.
 
 The process is:
 
 1. The mobile app triggers a sign-in interaction via the user's installed Solana wallet app (e.g. Phantom).
 2. The wallet app presents the user with a human-readable message and asks them to approve.
-3. On approval, the wallet signs the message with the user's private key and returns the  **wallet address** , the  **signed message** , and the **signature** to the app.
+3. On approval, the wallet signs the message with the user's private key and returns the **wallet address**, the **signed message**, and the **signature** to the app.
 4. The app sends these three pieces to the backend.
 5. The backend verifies the signature cryptographically — if valid, it confirms the user is the legitimate owner of that wallet address.
 6. The backend finds or creates a user record in MongoDB keyed to that wallet address, then issues a JWT.
 7. The app stores the JWT and uses it for all subsequent authenticated requests.
 
-> **Important for agents** : No address is needed before the sign-in interaction begins. The wallet address is returned  *as part of the sign-in result* . The flow starts with zero prior knowledge of the user.
+> **Important for agents**: No address is needed before the sign-in interaction begins. The wallet address is returned *as part of the sign-in result*. The flow starts with zero prior knowledge of the user.
 
 ---
 
@@ -32,9 +32,9 @@ The process is:
 
 Since there is no server-side nonce exchange, replay attacks are mitigated by:
 
-* Embedding an **`issuedAt`** ISO timestamp in the signed message at the time of sign-in.
-* The backend rejecting any sign-in payload where `issuedAt` is older than  **5 minutes** .
-* Once a JWT is issued, the signed message payload is no longer valid for re-use within the expiry window.
+- Embedding an **`issuedAt`** ISO timestamp in the signed message at the time of sign-in.
+- The backend rejecting any sign-in payload where `issuedAt` is older than **5 minutes**.
+- Once a JWT is issued, the signed message payload is no longer valid for re-use within the expiry window.
 
 > In a higher-security context, a server-side nonce (stored in Redis with a TTL) can be added. For most applications, timestamp validation is sufficient.
 
@@ -89,7 +89,7 @@ The mobile app uses `@wallet-ui/react-native-web3js` which exposes the `useMobil
 
 ### Code Reference (TypeScript — illustrative only)
 
-> **Note to agent** : The following is a structural guide. You are responsible for proper file organisation, error handling, loading states, and integration with your state management solution.
+> **Note to agent**: The following is a structural guide. You are responsible for proper file organisation, error handling, loading states, and integration with your state management solution.
 
 ```typescript
 // Illustrative shape of the signIn flow
@@ -133,17 +133,17 @@ async function handleSignIn(signIn: SignInFunction): Promise<void> {
 
 ### Stack
 
-* **Runtime** : Node.js with TypeScript
-* **Framework** : Express (or equivalent)
-* **Database** : MongoDB via Mongoose
-* **Cryptography** : `tweetnacl` for Ed25519 signature verification, `@solana/web3.js` for public key handling
-* **Auth tokens** : `jsonwebtoken`
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express (or equivalent)
+- **Database**: MongoDB via Mongoose
+- **Cryptography**: `tweetnacl` for Ed25519 signature verification, `@solana/web3.js` for public key handling
+- **Auth tokens**: `jsonwebtoken`
 
 ### Endpoint
 
 **`POST /auth/verify`**
 
- **Request body** :
+**Request body**:
 
 ```json
 {
@@ -153,7 +153,7 @@ async function handleSignIn(signIn: SignInFunction): Promise<void> {
 }
 ```
 
- **Success response** :
+**Success response**:
 
 ```json
 {
@@ -174,7 +174,7 @@ async function handleSignIn(signIn: SignInFunction): Promise<void> {
 
 ### Code Reference (TypeScript — illustrative only)
 
-> **Note to agent** : The following illustrates the verification logic and data flow only. You are responsible for proper project structure, middleware organisation, input validation (use `zod` or equivalent), error handling, environment variable management, and Mongoose schema design.
+> **Note to agent**: The following illustrates the verification logic and data flow only. You are responsible for proper project structure, middleware organisation, input validation (use `zod` or equivalent), error handling, environment variable management, and Mongoose schema design.
 
 ```typescript
 // Illustrative verification logic
@@ -234,7 +234,7 @@ async function verifyAndAuthenticate(payload: VerifyPayload) {
 
 ### MongoDB User Schema (illustrative)
 
-> **Note to agent** : Extend this schema with any application-specific fields. Index `walletAddress` for query performance.
+> **Note to agent**: Extend this schema with any application-specific fields. Index `walletAddress` for query performance.
 
 ```typescript
 // Illustrative Mongoose schema shape
@@ -250,7 +250,7 @@ interface IUser {
 
 ### JWT Auth Middleware (illustrative)
 
-> **Note to agent** : Apply this middleware to all routes that require authentication.
+> **Note to agent**: Apply this middleware to all routes that require authentication.
 
 ```typescript
 // Illustrative auth middleware
@@ -285,13 +285,13 @@ function authMiddleware(req: Request, res: Response, next: NextFunction): void {
 
 ## Security Checklist
 
-* [ ] Signature is always verified with `nacl.sign.detached.verify` — never skipped
-* [ ] `issuedAt` timestamp is validated to be within 5 minutes
-* [ ] JWT secret is stored in environment variables, never hardcoded
-* [ ] JWT is stored in secure storage on the mobile app, not AsyncStorage
-* [ ] All authenticated routes are protected with the auth middleware
-* [ ] Input is validated and sanitised before processing on the backend
-* [ ] MongoDB `walletAddress` field is indexed and enforced as unique
+- [ ] Signature is always verified with `nacl.sign.detached.verify` — never skipped
+- [ ] `issuedAt` timestamp is validated to be within 5 minutes
+- [ ] JWT secret is stored in environment variables, never hardcoded
+- [ ] JWT is stored in secure storage on the mobile app, not AsyncStorage
+- [ ] All authenticated routes are protected with the auth middleware
+- [ ] Input is validated and sanitised before processing on the backend
+- [ ] MongoDB `walletAddress` field is indexed and enforced as unique
 
 ---
 
@@ -318,4 +318,4 @@ zod           (recommended for request validation)
 
 ## Summary
 
-The authentication flow has three actors: the  **mobile app** , the **Solana wallet app** (Phantom or similar, installed on the user's device), and the  **backend** . The mobile app initiates a sign-in, the wallet handles the cryptographic signing, and the backend verifies the proof and manages user identity. No passwords, no email verification, no OAuth redirects — just a cryptographic handshake that results in a standard JWT-based session.
+The authentication flow has three actors: the **mobile app**, the **Solana wallet app** (Phantom or similar, installed on the user's device), and the **backend**. The mobile app initiates a sign-in, the wallet handles the cryptographic signing, and the backend verifies the proof and manages user identity. No passwords, no email verification, no OAuth redirects — just a cryptographic handshake that results in a standard JWT-based session.

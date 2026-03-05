@@ -17,4 +17,5 @@ export const config = {
     mongodbUri: requiredEnv('MONGODB_URI'),
     jwtSecret: requiredEnv('JWT_SECRET'),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    groqApiKey: requiredEnv('GROQ_API_KEY'),
 } as const;

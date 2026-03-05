@@ -23,8 +23,10 @@ export function validateQuery(schema: ZodType) {
             return;
         }
 
-        // Overwrite req.query with parsed + transformed values
-        req.query = result.data as typeof req.query;
+        // Attach the validated and transformed data to a new property
+        // because req.query is read-only in Express and cannot be safely reassigned
+        (req as any).validatedQuery = result.data;
+
         next();
     };
 }

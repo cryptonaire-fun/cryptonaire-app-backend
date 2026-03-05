@@ -20,7 +20,7 @@ export async function getLeaderboardController(
     next: NextFunction
 ): Promise<void> {
     try {
-        const query = req.query as unknown as GetLeaderboardQuery;
+        const query = (req as any).validatedQuery as GetLeaderboardQuery;
         const result = await getLeaderboard(query);
 
         res.status(200).json({

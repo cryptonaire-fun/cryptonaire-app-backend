@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import authRouter from './auth/auth.routes.ts';
 import leaderboardRouter from './leaderboard/leaderboard.routes.ts';
+import userRouter from './user/user.routes.ts';
+import gameRouter from './game/game.routes.ts';
 import { errorMiddleware } from './middleware/error.middleware.ts';
 
 const app = express();
@@ -61,8 +63,14 @@ app.get('/health', (_req, res) => {
 // Auth routes
 app.use('/auth', authRouter);
 
+// User routes
+app.use('/user', userRouter);
+
 // Leaderboard routes
 app.use('/leaderboard', leaderboardRouter);
+
+// Game routes
+app.use('/game', gameRouter);
 
 // --------------- Error Handling ---------------
 

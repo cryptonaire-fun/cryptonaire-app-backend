@@ -8,6 +8,10 @@ export interface IUser {
     walletAddress: string;
     username?: string;
     avatar?: string;
+    points: number;
+    skrTokens: number;
+    level: number;
+    questionsAnswered: number;
     createdAt: Date;
     lastLoginAt?: Date;
 }
@@ -36,6 +40,22 @@ const userSchema = new Schema<IUserDocument>(
         lastLoginAt: {
             type: Date,
             default: undefined,
+        },
+        points: {
+            type: Number,
+            default: 0,
+        },
+        skrTokens: {
+            type: Number,
+            default: 0,
+        },
+        level: {
+            type: Number,
+            default: 1,
+        },
+        questionsAnswered: {
+            type: Number,
+            default: 0,
         },
     },
     {
