@@ -10,11 +10,17 @@ const startServer = async () => {
     try {
         // Connect to MongoDB before starting the server
         await connectDB();
+        if (process.env.NODE_ENV === "development") {
+            server.listen(port, () => {
+                console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+            });
+        } else {
+            server.listen(port, '0.0.0.0', () => {
+                console.log(`⚡️[server]: Server is running at http://0.0.0.0:${port}`);
+                console.log(`📦 Environment: ${config.nodeEnv}`);
+            });
+        }
 
-        server.listen(port, () => {
-            console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-            console.log(`📦 Environment: ${config.nodeEnv}`);
-        });
     } catch (error) {
         console.error('❌ Failed to start server:', error);
         process.exit(1);
