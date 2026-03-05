@@ -15,8 +15,8 @@ FROM base AS runtime
 ENV NODE_ENV=production
 
 # Don't run as root
-RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 appuser
+RUN groupadd --system --gid 1001 appgroup && \
+    useradd --system --uid 1001 --gid appgroup appuser
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
