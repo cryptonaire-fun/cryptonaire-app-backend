@@ -18,4 +18,9 @@ export const config = {
     jwtSecret: requiredEnv('JWT_SECRET'),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
     groqApiKey: requiredEnv('GROQ_API_KEY'),
+    solana: {
+        rpcUrl: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+        treasuryPrivateKey: process.env.TREASURY_PRIVATE_KEY,
+        skrMintAddress: process.env.SKR_MINT_ADDRESS,
+    },
 } as const;

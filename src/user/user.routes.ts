@@ -39,4 +39,11 @@ router.patch(
     UserController.updateUsernameHandler
 );
 
+// Withdraw SKR tokens to wallet
+router.post(
+    '/me/withdraw',
+    authMiddleware,
+    UserController.withdrawSkrHandler
+);
+
 export default router;

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { UserService } from './user.service.ts';
+import { WithdrawService } from './withdraw.service.ts';
 import type { AuthJwtPayload } from '../types/express.d.ts';
 
 export class UserController {
@@ -67,6 +68,21 @@ export class UserController {
             res.status(200).json({
                 success: true,
                 data: updated,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    public static async withdrawSkrHandler(req: Request, res: Response, next: NextFunction) {
+        try {
+            const user = req.user as AuthJwtPayload;
+            const { amount } = req.body as { amount: number };
+            const result = await WithdrawService.withdrawSkr(user.userId, amount);
+
+            res.status(200).json({
+                success: true,
+                data: result,
             });
         } catch (error) {
             next(error);
