@@ -10,12 +10,11 @@ export const addPointsSchema = z.object({
 });
 
 export const addTokensSchema = z.object({
-    tokens: z.number().int().positive('Tokens must be a positive integer'),
+    tokens: z.number().positive('Tokens must be a positive number'),
 });
 
 export const addBothSchema = z.object({
     points: z.number().int().positive('Points must be a positive integer'),
-    tokens: z.number().int().positive('Tokens must be a positive integer'),
 });
 
 export type GenerateQuestionsInput = z.infer<typeof generateQuestionsSchema>;

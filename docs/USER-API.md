@@ -227,6 +227,66 @@ Each time `POST /game/add-to-user-points` is called (correct answer recorded), t
 
 ---
 
+## Withdraw SKR Tokens (`POST /user/me/withdraw`)
+
+Deducts the specified amount of `$SKR` tokens from the user's in-app balance and transfers the equivalent SPL tokens from the backend treasury wallet to the user's Solana wallet on devnet.
+
+The backend treasury signs and pays for the transaction — the user does not need any SOL in their wallet.
+
+### Requirements
+
+- **Authentication**: Required (`Bearer Token`)
+
+```http
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+```
+
+```json
+{
+  "amount": 50
+}
+```
+
+| Field | Type | Rules |
+| :--- | :--- | :--- |
+| `amount` | `number` | Required · positive number (floats allowed, e.g. `0.5`) · must not exceed the user's current `skrTokens` balance |
+
+### Successful Response (`200 OK`)
+
+```json
+{
+  "success": true,
+  "data": {
+    "txSignature": "5KtBh...7xQmR",
+    "amount": 50
+  }
+}
+```
+
+| Field | Description |
+| :--- | :--- |
+| `txSignature` | Solana transaction signature — verifiable on [Solana Explorer (devnet)](https://explorer.solana.com/?cluster=devnet) |
+| `amount` | Number of SKR tokens withdrawn |
+
+### How it works
+
+1. The endpoint atomically checks that the user has `>= amount` tokens and deducts them in a single DB operation — preventing race conditions.
+2. The treasury wallet sends an SPL token transfer on devnet to the user's wallet address (stored on their account from sign-in).
+3. If the on-chain transfer fails for any reason, the DB deduction is automatically rolled back and the user's balance is restored.
+4. The user's Associated Token Account (ATA) is created automatically by the treasury if it doesn't already exist.
+
+### Withdraw-Specific Errors
+
+| Status | Reason |
+| :--- | :--- |
+| `400 Bad Request` | `amount` is not a positive number, or the user has insufficient `skrTokens` balance |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `502 Bad Gateway` | On-chain SPL transfer failed (balance is automatically restored) |
+| `503 Service Unavailable` | Treasury wallet or SKR mint address is not configured on the server |
+
+---
+
 ## Error Responses
 
 For all the routes in the User module, the following errors may be encountered:

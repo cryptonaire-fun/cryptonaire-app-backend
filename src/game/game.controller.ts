@@ -71,10 +71,10 @@ export class GameController {
         next: NextFunction
     ) {
         try {
-            const { points, tokens } = req.body;
+            const { points } = req.body;
             const user = req.user as AuthJwtPayload;
 
-            const updatedUser = await GameService.addToUserPointsAndTokens(user.userId, points, tokens);
+            const updatedUser = await GameService.addToUserPointsAndTokens(user.userId, points);
 
             res.status(200).json({
                 success: true,

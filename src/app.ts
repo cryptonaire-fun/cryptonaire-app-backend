@@ -11,6 +11,7 @@ import gameRouter from './game/game.routes.ts';
 import { errorMiddleware } from './middleware/error.middleware.ts';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // --------------- Security & Parsing Middleware ---------------
 

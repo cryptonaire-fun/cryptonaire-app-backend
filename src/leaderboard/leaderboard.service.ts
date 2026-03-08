@@ -45,7 +45,7 @@ export async function upsertLeaderboardEntry(
     await LeaderboardModel.findOneAndUpdate(
         { walletAddress },
         { $set: { points: input.points } },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
     );
 
     // Re-rank all entries sorted by points descending

@@ -5,6 +5,8 @@ import { upsertLeaderboardEntry } from '../leaderboard/leaderboard.service.ts';
 
 const groq = new Groq({ apiKey: config.groqApiKey });
 
+const TOKENS_PER_CORRECT_ANSWER = 0.1;
+
 /**
  * Progression formula: questions required to advance from level N to N+1 = N × 10.
  * Total to reach level N: 10 × (N × (N-1) / 2)
@@ -32,8 +34,8 @@ export class GameService {
         // First increment questionsAnswered, then recalculate level
         const interim = await UserModel.findByIdAndUpdate(
             userId,
-            { $inc: { points: pointsAmount, questionsAnswered: 1 } },
-            { new: true, select: 'points skrTokens questionsAnswered level walletAddress' }
+            { $inc: { points: pointsAmount, skrTokens: TOKENS_PER_CORRECT_ANSWER, questionsAnswered: 1 } },
+            { returnDocument: 'after', select: 'points skrTokens questionsAnswered level walletAddress' }
         );
         if (!interim) throw new Error('User not found');
 
@@ -60,7 +62,7 @@ export class GameService {
         const user = await UserModel.findByIdAndUpdate(
             userId,
             { $inc: { skrTokens: tokensAmount } },
-            { new: true, select: 'points skrTokens' }
+            { returnDocument: 'after', select: 'points skrTokens' }
         );
         if (!user) throw new Error("User not found");
         return user;
@@ -69,12 +71,12 @@ export class GameService {
     /**
      * Increment both user points and skrTokens
      */
-    public static async addToUserPointsAndTokens(userId: string, pointsAmount: number, tokensAmount: number) {
+    public static async addToUserPointsAndTokens(userId: string, pointsAmount: number) {
         // Increment points, tokens, and questionsAnswered
         const user = await UserModel.findByIdAndUpdate(
             userId,
-            { $inc: { points: pointsAmount, skrTokens: tokensAmount, questionsAnswered: 1 } },
-            { new: true, select: 'points skrTokens questionsAnswered level walletAddress' }
+            { $inc: { points: pointsAmount, skrTokens: TOKENS_PER_CORRECT_ANSWER, questionsAnswered: 1 } },
+            { returnDocument: 'after', select: 'points skrTokens questionsAnswered level walletAddress' }
         );
         if (!user) throw new Error("User not found");
 

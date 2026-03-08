@@ -42,9 +42,9 @@ export class WithdrawService {
      * If the on-chain transfer fails, the deduction is rolled back.
      */
     static async withdrawSkr(userId: string, amount: number): Promise<{ txSignature: string; amount: number }> {
-        if (!Number.isInteger(amount) || amount <= 0) {
+        if (typeof amount !== 'number' || !isFinite(amount) || amount <= 0) {
             throw Object.assign(
-                new Error('Amount must be a positive integer'),
+                new Error('Amount must be a positive number'),
                 { statusCode: 400 }
             );
         }
@@ -53,7 +53,7 @@ export class WithdrawService {
         const user = await UserModel.findOneAndUpdate(
             { _id: userId, skrTokens: { $gte: amount } },
             { $inc: { skrTokens: -amount } },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!user) {
@@ -71,7 +71,7 @@ export class WithdrawService {
 
             // Read decimals from the mint so raw amount is always correct
             const mintInfo = await getMint(connection, mintPubkey);
-            const rawAmount = BigInt(amount) * BigInt(10 ** mintInfo.decimals);
+            const rawAmount = BigInt(Math.round(amount * 10 ** mintInfo.decimals));
 
             // Get treasury ATA (must already exist and be funded)
             const treasuryAta = await getOrCreateAssociatedTokenAccount(

@@ -19,10 +19,37 @@ import {
     getOrCreateAssociatedTokenAccount,
     mintTo,
 } from '@solana/spl-token';
+import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
+import { createMetadataAccountV3 } from '@metaplex-foundation/mpl-token-metadata';
+import {
+    keypairIdentity,
+    publicKey as umiPublicKey,
+} from '@metaplex-foundation/umi';
 
 const SKR_DECIMALS = 6;
 const INITIAL_SUPPLY = 1_000_000; // 1 million tokens
 const RPC_URL = process.env.SOLANA_RPC_URL ?? clusterApiUrl('devnet');
+
+/**
+ * Polls the balance every 5s until at least 1 SOL is detected,
+ * giving the user time to fund the wallet manually via faucet.solana.com.
+ */
+async function waitForFunding(connection: Connection, keypair: Keypair): Promise<void> {
+    const pubkey = keypair.publicKey;
+    console.log('\n>>> Go to https://faucet.solana.com and airdrop SOL to:');
+    console.log('   ', pubkey.toBase58());
+    console.log('\nWaiting for funds to arrive on devnet...');
+
+    while (true) {
+        const balance = await connection.getBalance(pubkey, 'confirmed');
+        if (balance >= LAMPORTS_PER_SOL) {
+            console.log(`Funded! Balance: ${(balance / LAMPORTS_PER_SOL).toFixed(2)} SOL`);
+            return;
+        }
+        process.stdout.write('.');
+        await new Promise((r) => setTimeout(r, 5000));
+    }
+}
 
 async function main() {
     const connection = new Connection(RPC_URL, 'confirmed');
@@ -34,11 +61,8 @@ async function main() {
     console.log('Private key (add to .env as TREASURY_PRIVATE_KEY):');
     console.log(JSON.stringify(Array.from(treasury.secretKey)));
 
-    // Airdrop SOL to pay for tx fees and ATA creation
-    console.log('\nRequesting devnet SOL airdrop...');
-    const sig = await connection.requestAirdrop(treasury.publicKey, 2 * LAMPORTS_PER_SOL);
-    await connection.confirmTransaction(sig, 'confirmed');
-    console.log('Airdrop confirmed. Balance: 2 SOL');
+    // Wait for user to manually fund the treasury via faucet.solana.com
+    await waitForFunding(connection, treasury);
 
     // Create the SPL token mint (simulates SKR on devnet)
     console.log('\nCreating SPL token mint...');
@@ -71,6 +95,28 @@ async function main() {
         treasury, // mint authority
         BigInt(INITIAL_SUPPLY) * BigInt(10 ** SKR_DECIMALS)
     );
+
+    // Attach on-chain metadata so Phantom displays "SKR" instead of "Unknown Token"
+    console.log('\nAttaching token metadata...');
+    const umi = createUmi(RPC_URL);
+    umi.use(keypairIdentity(umi.eddsa.createKeypairFromSecretKey(treasury.secretKey)));
+
+    await createMetadataAccountV3(umi, {
+        mint: umiPublicKey(mint.toBase58()),
+        mintAuthority: umi.identity,
+        data: {
+            name: 'SKR',
+            symbol: 'SKR',
+            uri: '',
+            sellerFeeBasisPoints: 0,
+            creators: null,
+            collection: null,
+            uses: null,
+        },
+        isMutable: true,
+        collectionDetails: null,
+    }).sendAndConfirm(umi);
+    console.log('Metadata attached. Token will appear as "SKR" in Phantom.');
 
     console.log('\n✅ Setup complete. Add these to your .env:\n');
     console.log(`SOLANA_RPC_URL=${RPC_URL}`);

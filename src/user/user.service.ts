@@ -89,7 +89,7 @@ export class UserService {
         const user = await UserModel.findByIdAndUpdate(
             userId,
             { username: trimmed },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!user) throw new Error('User not found');
