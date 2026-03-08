@@ -8,7 +8,7 @@ Welcome to the backend repository of **Cryptonaire**, a real-time crypto trivia 
 
 - **Wallet-Based Authentication**: Secure login using Solana wallet signatures (`Sign in with Solana`), backed by JWT sessions.
 - **AI Question Generation**: Integration with Groq AI to dynamically generate crypto-related questions for players.
-- **Progression System**: Track user progress, including points, tokens, and level ups as they answer questions correctly.
+- **Progression System**: Track user progress, including points, tokens, and automatic level-ups as they answer questions correctly. Each correct answer awards a fixed **0.1 SKR token** (server-enforced) and increments `questionsAnswered`. Level is calculated from cumulative correct answers using the formula: Level N requires `N × 10` questions to advance (10 to reach Level 2, 20 more for Level 3, etc.).
 - **SKR Token Withdrawals**: Users can withdraw their earned `$SKR` tokens on-chain to their Solana wallet. The backend treasury signs and pays for all transfers via SPL token — no SOL required from the user. On devnet, a simulated SKR mint is used; the flow is identical to mainnet.
 - **Global Leaderboard**: Real-time ranking of players based on their scores.
 - **Robust Security**: Protected routes, JWT verification, rate-limiting, and standard Express security middlewares (Helmet, CORS).
@@ -25,7 +25,7 @@ Welcome to the backend repository of **Cryptonaire**, a real-time crypto trivia 
 
 ## 📁 Project Structure
 
-```
+```text
 src/
 ├── auth/           # Solana wallet authentication routes & controllers
 ├── config/         # Configuration, Environment variables, MongoDB connection setup
@@ -127,8 +127,9 @@ Before you begin, ensure you have the following installed:
 ### Game
 
 - `POST /game/generate-questions` - Generates a new set of crypto questions using Groq AI.
-- `POST /game/add-to-user-points` - Increments user points upon answering correctly.
-- `POST /game/add-to-user-tokens` - Credits tokens to the user.
+- `POST /game/add-to-user-points` - Increments user points upon a correct answer. Also automatically awards **0.1 SKR token** and increments `questionsAnswered`, triggering a level-up if the threshold is reached.
+- `POST /game/add-to-user-tokens` - Credits a specified amount of SKR tokens to the user.
+- `POST /game/add-to-user-both` - Increments user points upon a correct answer and automatically awards **0.1 SKR token**, with level progression applied.
 
 ### Leaderboard
 
